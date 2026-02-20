@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.Frame;
+import java.util.Locale;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -8,6 +9,7 @@ import javax.swing.UIManager;
 public class RobotsProgram
 {
     public static void main(String[] args) {
+      Locale.setDefault(new Locale("ru", "RU"));
       try {
         UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 //        UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
@@ -19,7 +21,6 @@ public class RobotsProgram
 
       UIManager.put("OptionPane.yesButtonText", "Да");
       UIManager.put("OptionPane.noButtonText", "Нет");
-      UIManager.put("OptionPane.cancelButtonText", "Отмена");
 
       SwingUtilities.invokeLater(() -> {
         MainApplicationFrame frame = new MainApplicationFrame();
