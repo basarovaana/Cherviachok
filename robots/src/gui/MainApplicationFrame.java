@@ -10,6 +10,9 @@ import javax.swing.*;
 
 import log.Logger;
 
+import java.io.FileOutputStream;
+import java.util.Properties;
+
 /**
  * Что требуется сделать:
  * 1. Метод создания меню перегружен функционалом и трудно читается. 
@@ -18,6 +21,9 @@ import log.Logger;
  */
 public class MainApplicationFrame extends JFrame
 {
+    private static final String CONFIG_PATH =
+            System.getProperty("user.home") + "/robots.properties";
+
     private final JDesktopPane desktopPane = new JDesktopPane();
     
     public MainApplicationFrame() {
@@ -162,6 +168,7 @@ public class MainApplicationFrame extends JFrame
         );
 
         if (result == JOptionPane.YES_OPTION) {
+            saveWindowState();
             System.exit(0);
         }
     }
@@ -177,6 +184,25 @@ public class MainApplicationFrame extends JFrame
             | IllegalAccessException | UnsupportedLookAndFeelException e)
         {
             // just ignore
+        }
+    }
+
+    private void saveWindowState() {
+        try {
+            Properties props = new Properties();
+
+            props.setProperty("main.x", Integer.toString(getX()));
+            props.setProperty("main.y", Integer.toString(getY()));
+            props.setProperty("main.w", Integer.toString(getWidth()));
+            props.setProperty("main.h", Integer.toString(getHeight()));
+            props.setProperty("main.state", Integer.toString(getExtendedState()));
+
+            FileOutputStream out = new FileOutputStream(CONFIG_PATH);
+            props.store(out, "Robots configuration");
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
