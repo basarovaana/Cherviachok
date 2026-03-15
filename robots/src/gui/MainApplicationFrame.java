@@ -12,6 +12,8 @@ import log.Logger;
 
 import java.io.FileOutputStream;
 import java.util.Properties;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 /**
  * Что требуется сделать:
@@ -25,6 +27,9 @@ public class MainApplicationFrame extends JFrame
             System.getProperty("user.home") + "/robots.properties";
 
     private final JDesktopPane desktopPane = new JDesktopPane();
+
+    private LogWindow logWindow;
+    private GameWindow gameWindow;
     
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
@@ -36,14 +41,16 @@ public class MainApplicationFrame extends JFrame
             screenSize.height - inset*2);
 
         setContentPane(desktopPane);
-        
-        
-        LogWindow logWindow = createLogWindow();
+
+
+        logWindow = createLogWindow();
         addWindow(logWindow);
 
-        GameWindow gameWindow = new GameWindow();
+        gameWindow = new GameWindow();
         gameWindow.setSize(400,  400);
         addWindow(gameWindow);
+
+        loadWindowState();
 
         setJMenuBar(generateMenuBar());
 
@@ -62,7 +69,7 @@ public class MainApplicationFrame extends JFrame
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         logWindow.setLocation(10,10);
         logWindow.setSize(300, 800);
-        setMinimumSize(logWindow.getSize());
+        //setMinimumSize(logWindow.getSize());
         logWindow.pack();
         Logger.debug("Протокол работает");
         return logWindow;
@@ -197,10 +204,67 @@ public class MainApplicationFrame extends JFrame
             props.setProperty("main.h", Integer.toString(getHeight()));
             props.setProperty("main.state", Integer.toString(getExtendedState()));
 
+            props.setProperty("log.x", Integer.toString(logWindow.getX()));
+            props.setProperty("log.y", Integer.toString(logWindow.getY()));
+            props.setProperty("log.w", Integer.toString(logWindow.getWidth()));
+            props.setProperty("log.h", Integer.toString(logWindow.getHeight()));
+            props.setProperty("log.icon", Boolean.toString(logWindow.isIcon()));
+
+            props.setProperty("game.x", Integer.toString(gameWindow.getX()));
+            props.setProperty("game.y", Integer.toString(gameWindow.getY()));
+            props.setProperty("game.w", Integer.toString(gameWindow.getWidth()));
+            props.setProperty("game.h", Integer.toString(gameWindow.getHeight()));
+            props.setProperty("game.icon", Boolean.toString(gameWindow.isIcon()));
+
             FileOutputStream out = new FileOutputStream(CONFIG_PATH);
             props.store(out, "Robots configuration");
             out.close();
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadWindowState() {
+        try {
+            FileInputStream in = new FileInputStream(CONFIG_PATH);
+            Properties props = new Properties();
+            props.load(in);
+            in.close();
+
+            int x = Integer.parseInt(props.getProperty("main.x", String.valueOf(getX())));
+            int y = Integer.parseInt(props.getProperty("main.y", String.valueOf(getY())));
+            int w = Integer.parseInt(props.getProperty("main.w", String.valueOf(getWidth())));
+            int h = Integer.parseInt(props.getProperty("main.h", String.valueOf(getHeight())));
+            int state = Integer.parseInt(props.getProperty("main.state", "0"));
+
+            setBounds(x, y, w, h);
+            setExtendedState(state);
+
+            int logX = Integer.parseInt(props.getProperty("log.x", String.valueOf(logWindow.getX())));
+            int logY = Integer.parseInt(props.getProperty("log.y", String.valueOf(logWindow.getY())));
+            int logW = Integer.parseInt(props.getProperty("log.w", String.valueOf(logWindow.getWidth())));
+            int logH = Integer.parseInt(props.getProperty("log.h", String.valueOf(logWindow.getHeight())));
+            boolean logIcon = Boolean.parseBoolean(props.getProperty("log.icon", "false"));
+
+            logWindow.setBounds(logX, logY, logW, logH);
+            if (logWindow.isIcon() != logIcon){
+                logWindow.setIcon(logIcon);
+            }
+
+            int gameX = Integer.parseInt(props.getProperty("game.x", String.valueOf(gameWindow.getX())));
+            int gameY = Integer.parseInt(props.getProperty("game.y", String.valueOf(gameWindow.getY())));
+            int gameW = Integer.parseInt(props.getProperty("game.w", String.valueOf(gameWindow.getWidth())));
+            int gameH = Integer.parseInt(props.getProperty("game.h", String.valueOf(gameWindow.getHeight())));
+            boolean gameIcon = Boolean.parseBoolean(props.getProperty("game.icon", "false"));
+
+            gameWindow.setBounds(gameX, gameY, gameW, gameH);
+            if (gameWindow.isIcon() != gameIcon){
+                gameWindow.setIcon(gameIcon);
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл конфигурации не найден, используем настройки по умолчанию");
         } catch (Exception e) {
             e.printStackTrace();
         }
