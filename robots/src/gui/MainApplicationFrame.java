@@ -46,9 +46,16 @@ public class MainApplicationFrame extends JFrame
         logWindow = createLogWindow();
         addWindow(logWindow);
 
-        gameWindow = new GameWindow();
-        gameWindow.setSize(400,  400);
+        RobotModel model = new RobotModel();
+
+        GameWindow gameWindow = new GameWindow(model);
+        CoordinatesWindow coordWindow = new CoordinatesWindow(model);
+
+        gameWindow.setSize(400, 400);
+        coordWindow.setLocation(420, 10);
+
         addWindow(gameWindow);
+        addWindow(coordWindow);
 
         loadWindowState();
 
