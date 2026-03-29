@@ -30,6 +30,7 @@ public class MainApplicationFrame extends JFrame
 
     private LogWindow logWindow;
     private GameWindow gameWindow;
+    private CoordinatesWindow coordWindow;
     
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
@@ -48,8 +49,8 @@ public class MainApplicationFrame extends JFrame
 
         RobotModel model = new RobotModel();
 
-        GameWindow gameWindow = new GameWindow(model);
-        CoordinatesWindow coordWindow = new CoordinatesWindow(model);
+        this.gameWindow = new GameWindow(model);
+        this.coordWindow = new CoordinatesWindow(model);
 
         gameWindow.setSize(400, 400);
         coordWindow.setLocation(420, 10);
@@ -120,6 +121,14 @@ public class MainApplicationFrame extends JFrame
     private JMenuBar generateMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
+
+        JButton exitButton = new JButton("Выход");
+        exitButton.setMnemonic(KeyEvent.VK_X);
+        exitButton.addActionListener((event) -> {
+            exitApplication();
+        });
+
+        menuBar.add(exitButton);
         
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
@@ -159,14 +168,6 @@ public class MainApplicationFrame extends JFrame
 
         menuBar.add(lookAndFeelMenu);
         menuBar.add(testMenu);
-        testMenu.addSeparator();
-
-        JMenuItem exitItem = new JMenuItem("Выход", KeyEvent.VK_X);
-        exitItem.addActionListener((event) -> {
-            exitApplication();
-        });
-
-        testMenu.add(exitItem);
 
         return menuBar;
     }
@@ -223,6 +224,12 @@ public class MainApplicationFrame extends JFrame
             props.setProperty("game.h", Integer.toString(gameWindow.getHeight()));
             props.setProperty("game.icon", Boolean.toString(gameWindow.isIcon()));
 
+            props.setProperty("coord.x", Integer.toString(coordWindow.getX()));
+            props.setProperty("coord.y", Integer.toString(coordWindow.getY()));
+            props.setProperty("coord.w", Integer.toString(coordWindow.getWidth()));
+            props.setProperty("coord.h", Integer.toString(coordWindow.getHeight()));
+            props.setProperty("coord.icon", Boolean.toString(coordWindow.isIcon()));
+
             FileOutputStream out = new FileOutputStream(CONFIG_PATH);
             props.store(out, "Robots configuration");
             out.close();
@@ -268,6 +275,17 @@ public class MainApplicationFrame extends JFrame
             gameWindow.setBounds(gameX, gameY, gameW, gameH);
             if (gameWindow.isIcon() != gameIcon){
                 gameWindow.setIcon(gameIcon);
+            }
+
+            int coordX = Integer.parseInt(props.getProperty("coord.x", String.valueOf(coordWindow.getX())));
+            int coordY = Integer.parseInt(props.getProperty("coord.y", String.valueOf(coordWindow.getY())));
+            int coordW = Integer.parseInt(props.getProperty("coord.w", String.valueOf(coordWindow.getWidth())));
+            int coordH = Integer.parseInt(props.getProperty("coord.h", String.valueOf(coordWindow.getHeight())));
+            boolean coordIcon = Boolean.parseBoolean(props.getProperty("coord.icon", "false"));
+
+            coordWindow.setBounds(coordX, coordY, coordW, coordH);
+            if (coordWindow.isIcon() != coordIcon){
+                coordWindow.setIcon(coordIcon);
             }
 
         } catch (FileNotFoundException e) {
