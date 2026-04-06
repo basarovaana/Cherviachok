@@ -11,11 +11,8 @@ public class RobotModel {
     private int targetX = 150;
     private int targetY = 100;
 
-    private static final double maxVelocity = 0.5;
-    private static final double maxAngularVelocity = 0.01;
-
-    private double maxWidth = 400;
-    private double maxHeight = 400;
+    private static final double maxVelocity = 5;
+    private static final double maxAngularVelocity = 0.1;
 
     private final List<RobotListener> listeners = new ArrayList<>();
 
@@ -24,84 +21,54 @@ public class RobotModel {
     }
 
     private void notifyListeners() {
-        for (RobotListener listener : listeners) {
-            listener.onRobotMoved(x, y);
+        for (RobotListener l : listeners) {
+            l.onRobotMoved(x, y);
         }
     }
 
-    public void setTarget(int x, int y) {
+    public void setTargetPosition(int x, int y) {
         targetX = x;
         targetY = y;
     }
 
-    public void setBounds(double width, double height) {
-        this.maxWidth = width;
-        this.maxHeight = height;
-        x = clamp(x, 0, maxWidth);
-        y = clamp(y, 0, maxHeight);
-    }
-
     public void update() {
-        double distance = distance(targetX, targetY, x, y);
-        if (distance < 0.5) {
+        double dx = targetX - x;
+        double dy = targetY - y;
+
+        double distance = Math.hypot(dx, dy);
+        if (distance < 5) {
+            x = targetX;
+            y = targetY;
+            notifyListeners();
             return;
         }
 
-        double velocity = maxVelocity;
-        double angleToTarget = angleTo(x, y, targetX, targetY);
-
+        double angleToTarget = Math.atan2(dy, dx);
         double angleDiff = angleToTarget - direction;
+
         while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
         while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
 
-        double angularVelocity = 0;
-        if (angleDiff > 0.01) {
-            angularVelocity = maxAngularVelocity;
-        } else if (angleDiff < -0.01) {
-            angularVelocity = -maxAngularVelocity;
-        }
+        double angularVelocity = Math.max(-maxAngularVelocity,
+                Math.min(maxAngularVelocity, angleDiff));
 
-        moveRobot(velocity, angularVelocity, 10);
+        x += maxVelocity * Math.cos(direction);
+        y += maxVelocity * Math.sin(direction);
+
+        direction += angularVelocity;
+
         notifyListeners();
     }
 
-    private void moveRobot(double velocity, double angularVelocity, double duration) {
-        if (Math.abs(angularVelocity) < 0.0001) {
-            x += velocity * duration * Math.cos(direction);
-            y += velocity * duration * Math.sin(direction);
-        } else {
-            double radius = velocity / angularVelocity;
-            double newDirection = direction + angularVelocity * duration;
-            x += radius * (Math.sin(newDirection) - Math.sin(direction));
-            y -= radius * (Math.cos(newDirection) - Math.cos(direction));
-        }
-
-        x = clamp(x, 0, maxWidth);
-        y = clamp(y, 0, maxHeight);
-
-        direction = normalizeAngle(direction + angularVelocity * duration);
+    public double getDirection() {
+        return direction;
     }
 
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(value, max));
+    public int getTargetX() {
+        return targetX;
     }
 
-    private static double normalizeAngle(double angle) {
-        while (angle < 0) angle += 2 * Math.PI;
-        while (angle >= 2 * Math.PI) angle -= 2 * Math.PI;
-        return angle;
+    public int getTargetY() {
+        return targetY;
     }
-
-    private static double distance(double x1, double y1, double x2, double y2) {
-        return Math.hypot(x1 - x2, y1 - y2);
-    }
-
-    private static double angleTo(double fromX, double fromY, double toX, double toY)
-    {
-        return normalizeAngle(Math.atan2(toY - fromY, toX - fromX));
-    }
-
-    public double getDirection() { return direction; }
-    public int getTargetX() { return targetX; }
-    public int getTargetY() { return targetY; }
 }

@@ -11,6 +11,7 @@ public class CoordinatesWindow extends JInternalFrame implements RobotListener {
         super("Координаты робота", true, true, true, true);
 
         label = new JLabel("X: 0 Y: 0");
+        label.setHorizontalAlignment(SwingConstants.CENTER);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(label, BorderLayout.CENTER);
 
@@ -22,6 +23,8 @@ public class CoordinatesWindow extends JInternalFrame implements RobotListener {
 
     @Override
     public void onRobotMoved(double x, double y) {
-        label.setText("X: " + (int)x + " Y: " + (int)y);
+        SwingUtilities.invokeLater(() ->
+                label.setText("X: " + (int) x + "  Y: " + (int) y)
+        );
     }
 }
