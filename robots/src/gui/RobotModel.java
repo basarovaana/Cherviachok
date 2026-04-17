@@ -12,7 +12,7 @@ public class RobotModel {
     private int targetY = 100;
 
     private static final double maxVelocity = 5;
-    private static final double maxAngularVelocity = 0.1;
+    private static final double maxAngularVelocity = 0.7;
 
     private final List<RobotListener> listeners = new ArrayList<>();
 
