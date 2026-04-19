@@ -4,11 +4,12 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JPanel;
 
-public class GameVisualizer extends JPanel implements RobotListener
+public class GameVisualizer extends JPanel implements RobotListener, RouteListener
 {
     private final Timer m_timer = new Timer("events generator", true);
     private final RobotModel model;
@@ -16,10 +17,13 @@ public class GameVisualizer extends JPanel implements RobotListener
     private volatile double m_robotPositionX = 100;
     private volatile double m_robotPositionY = 100;
 
+    private List<int[]> routePoints = null;
+
     public GameVisualizer(RobotModel model)
     {
         this.model = model;
         model.addListener(this);
+        model.addRouteListener(this);
 
         m_timer.schedule(new TimerTask()
         {
@@ -39,7 +43,13 @@ public class GameVisualizer extends JPanel implements RobotListener
                 Insets insets = getInsets();
                 int x = e.getX() - insets.left;
                 int y = e.getY() - insets.top;
-                model.setTargetPosition(x, y);
+
+                if (model.isRouteMode()) {
+                    model.addRoutePoint(x, y);
+                } else if (!model.isMovingAlongRoute()) {
+                    model.setTargetPosition(x, y);
+                    repaint();
+                }
             }
         });
 
@@ -51,6 +61,18 @@ public class GameVisualizer extends JPanel implements RobotListener
     {
         m_robotPositionX = x;
         m_robotPositionY = y;
+        repaint();
+    }
+
+    @Override
+    public void onRouteChanged(List<int[]> routePoints) {
+        this.routePoints = routePoints;
+        repaint();
+    }
+
+    @Override
+    public void onCurrentTargetChanged(int x, int y) {
+        repaint();
     }
 
     private static int round(double value)
@@ -64,8 +86,31 @@ public class GameVisualizer extends JPanel implements RobotListener
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
 
-        drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), model.getDirection());
+        drawRoute(g2d);
         drawTarget(g2d, model.getTargetX(), model.getTargetY());
+        drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), model.getDirection());
+    }
+
+    private void drawRoute(Graphics2D g) {
+        if (routePoints == null || routePoints.isEmpty()) return;
+
+        g.setColor(Color.BLUE);
+        g.setStroke(new BasicStroke(2));
+
+        int[] previous = null;
+        for (int[] point : routePoints) {
+            if (previous != null) {
+                g.drawLine(previous[0], previous[1], point[0], point[1]);
+            }
+            previous = point;
+        }
+
+        for (int[] point : routePoints) {
+            g.setColor(Color.GREEN);
+            fillOval(g, point[0], point[1], 5, 5);
+            g.setColor(Color.BLACK);
+            drawOval(g, point[0], point[1], 5, 5);
+        }
     }
 
     private void drawTarget(Graphics2D g, int x, int y)

@@ -31,7 +31,8 @@ public class MainApplicationFrame extends JFrame
     private LogWindow logWindow;
     private GameWindow gameWindow;
     private CoordinatesWindow coordWindow;
-    
+    private RobotModel robotModel;
+
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
         //of the screen.
@@ -43,14 +44,13 @@ public class MainApplicationFrame extends JFrame
 
         setContentPane(desktopPane);
 
+        robotModel = new RobotModel();
 
         logWindow = createLogWindow();
         addWindow(logWindow);
 
-        RobotModel model = new RobotModel();
-
-        this.gameWindow = new GameWindow(model);
-        this.coordWindow = new CoordinatesWindow(model);
+        this.gameWindow = new GameWindow(robotModel);
+        this.coordWindow = new CoordinatesWindow(robotModel);
 
         gameWindow.setSize(400, 400);
         coordWindow.setLocation(420, 10);
@@ -71,7 +71,7 @@ public class MainApplicationFrame extends JFrame
             }
         });
     }
-    
+
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
@@ -129,12 +129,32 @@ public class MainApplicationFrame extends JFrame
         });
 
         menuBar.add(exitButton);
-        
+
+        JMenu routeMenu = new JMenu("Маршрут");
+        routeMenu.setMnemonic(KeyEvent.VK_R);
+
+        JMenuItem drawRouteItem = new JMenuItem("Нарисовать маршрут", KeyEvent.VK_D);
+        drawRouteItem.addActionListener(e -> robotModel.startDrawingRoute());
+        routeMenu.add(drawRouteItem);
+
+        JMenuItem startRouteItem = new JMenuItem("Старт", KeyEvent.VK_S);
+        startRouteItem.addActionListener(e -> {
+            robotModel.finishDrawingRoute();
+            robotModel.startMovingAlongRoute();
+        });
+        routeMenu.add(startRouteItem);
+
+        JMenuItem clearRouteItem = new JMenuItem("Очистить", KeyEvent.VK_C);
+        clearRouteItem.addActionListener(e -> robotModel.clearRoute());
+        routeMenu.add(clearRouteItem);
+
+        menuBar.add(routeMenu);
+
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
                 "Управление режимом отображения приложения");
-        
+
         {
             JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
             systemLookAndFeel.addActionListener((event) -> {
@@ -157,7 +177,7 @@ public class MainApplicationFrame extends JFrame
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
-        
+
         {
             JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
             addLogMessageItem.addActionListener((event) -> {
@@ -187,7 +207,7 @@ public class MainApplicationFrame extends JFrame
             System.exit(0);
         }
     }
-    
+
     private void setLookAndFeel(String className)
     {
         try
