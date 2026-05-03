@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.util.Properties;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.awt.event.KeyListener;
 
 /**
  * Что требуется сделать:
@@ -32,6 +33,9 @@ public class MainApplicationFrame extends JFrame
     private GameWindow gameWindow;
     private CoordinatesWindow coordWindow;
     private RobotModel robotModel;
+
+    private PacmanControlPanel pacmanControlPanel = null;
+
 
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
@@ -149,6 +153,55 @@ public class MainApplicationFrame extends JFrame
         routeMenu.add(clearRouteItem);
 
         menuBar.add(routeMenu);
+
+        JMenu gameModeMenu = new JMenu("Режим игры");
+        gameModeMenu.setMnemonic(KeyEvent.VK_G);
+
+        JMenuItem pacmanModeItem = new JMenuItem("Режим PACMAN", KeyEvent.VK_P);
+        pacmanModeItem.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Переключиться в режим PACMAN?",
+                    "Подтверждение",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+
+                PacmanGame newGame = new PacmanGame();
+                robotModel.setPacmanGame(newGame);
+
+                robotModel.startPacmanMode();
+
+                coordWindow.setVisible(false);
+
+                pacmanControlPanel = new PacmanControlPanel(robotModel.getPacmanGame());
+
+                gameWindow.setPacmanMode(true, pacmanControlPanel);
+                gameWindow.setVisible(true);
+
+                gameWindow.addKeyListener(pacmanControlPanel.getKeyAdapter());
+                gameWindow.setFocusable(true);
+                gameWindow.requestFocus();
+            }
+        });
+        gameModeMenu.add(pacmanModeItem);
+
+        JMenuItem robotModeItem = new JMenuItem("Обычный режим робота", KeyEvent.VK_R);
+        robotModeItem.addActionListener(e -> {
+            robotModel.stopPacmanMode();
+
+            gameWindow.setPacmanMode(false, null);
+
+            for (KeyListener kl : gameWindow.getKeyListeners()) {
+                gameWindow.removeKeyListener(kl);
+            }
+
+            coordWindow.setVisible(true);
+            gameWindow.repaint();
+        });
+        gameModeMenu.add(robotModeItem);
+
+        menuBar.add(gameModeMenu);
 
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);

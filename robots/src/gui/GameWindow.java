@@ -8,6 +8,7 @@ public class GameWindow extends JInternalFrame
 {
     private final GameVisualizer m_visualizer;
     private final RobotModel model;
+    private PacmanControlPanel controlPanel = null;
 
     public GameWindow(RobotModel model)
     {
@@ -18,6 +19,19 @@ public class GameWindow extends JInternalFrame
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
-        pack();
+    }
+
+    public void setPacmanMode(boolean enabled, PacmanControlPanel panel) {
+        if (enabled && panel != null) {
+            this.controlPanel = panel;
+            getContentPane().add(controlPanel, BorderLayout.NORTH);
+            setSize(815, 670);
+        } else if (controlPanel != null) {
+            getContentPane().remove(controlPanel);
+            controlPanel = null;
+            setSize(800, 800);
+        }
+        revalidate();
+        repaint();
     }
 }

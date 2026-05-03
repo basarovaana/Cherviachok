@@ -25,6 +25,13 @@ public class RobotModel {
     private boolean movingAlongRoute = false;
     private final List<RouteListener> routeListeners = new ArrayList<>();
 
+    private PacmanGame pacmanGame;
+    private boolean pacmanMode = false;
+
+    public RobotModel() {
+        pacmanGame = new PacmanGame();
+    }
+
     public void addListener(RobotListener listener) {
         listeners.add(listener);
     }
@@ -166,5 +173,27 @@ public class RobotModel {
 
     public int getTargetY() {
         return targetY;
+    }
+
+    public void startPacmanMode() {
+        pacmanMode = true;
+        pacmanGame.start();
+    }
+
+    public void stopPacmanMode() {
+        pacmanMode = false;
+        pacmanGame.stop();
+    }
+
+    public boolean isPacmanMode() {
+        return pacmanMode;
+    }
+
+    public PacmanGame getPacmanGame() {
+        return pacmanGame;
+    }
+
+    public void setPacmanGame(PacmanGame newGame) {
+        this.pacmanGame = newGame;
     }
 }

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JPanel;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 
 public class GameVisualizer extends JPanel implements RobotListener, RouteListener
 {
@@ -18,12 +20,14 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
     private volatile double m_robotPositionY = 100;
 
     private List<int[]> routePoints = null;
+    private Image winImage;
 
     public GameVisualizer(RobotModel model)
     {
         this.model = model;
         model.addListener(this);
         model.addRouteListener(this);
+        loadWinImage();
 
         m_timer.schedule(new TimerTask()
         {
@@ -54,6 +58,21 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
         });
 
         setDoubleBuffered(true);
+        setFocusable(true);
+    }
+
+    private void loadWinImage() {
+        try {
+            java.io.File imgFile = new java.io.File("image/win.jpg");
+            if (imgFile.exists()) {
+                winImage = ImageIO.read(imgFile);
+            } else {
+                winImage = null;
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+            winImage = null;
+        }
     }
 
     @Override
@@ -86,9 +105,24 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
         super.paint(g);
         Graphics2D g2d = (Graphics2D)g;
 
-        drawRoute(g2d);
-        drawTarget(g2d, model.getTargetX(), model.getTargetY());
-        drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), model.getDirection());
+        if (model.isPacmanMode()) {
+            PacmanGame pacmanGame = model.getPacmanGame();
+            if (pacmanGame.isActive()) {
+                pacmanGame.drawMapCoinsPlayer(g2d, 0, 0);
+            }
+
+            if (pacmanGame.isWin()) {
+                drawWinScreenFull(g2d);
+            }
+        } else {
+            drawRoute(g2d);
+            drawTarget(g2d, model.getTargetX(), model.getTargetY());
+            drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), model.getDirection());
+        }
+    }
+
+    private void drawWinScreenFull(Graphics2D g) {
+            g.drawImage(winImage, 0, 0, getWidth(), getHeight(), this);
     }
 
     private void drawRoute(Graphics2D g) {
