@@ -13,6 +13,7 @@ public class PacmanControlPanel extends JPanel {
     private JLabel scoreLabel;
     private JLabel statusLabel;
     private JButton newGameButton;
+    private Timer ghostsTimer;
 
     private Timer movementTimer;
     private int currentDx = 0;
@@ -61,6 +62,18 @@ public class PacmanControlPanel extends JPanel {
             }
         });
         movementTimer.start();
+        ghostsTimer = new Timer(16, e -> {
+
+            if (game.isActive() &&
+                    !game.isGameOver() &&
+                    !game.isWin()) {
+
+                game.updateGhosts();
+                game.checkGhostCollision();
+            }
+        });
+
+        ghostsTimer.start();
     }
 
     private void updateGameStatus() {
