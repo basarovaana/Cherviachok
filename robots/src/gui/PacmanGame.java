@@ -36,6 +36,36 @@ public class PacmanGame {
         loadDefaultMap();
     }
 
+    public PacmanGame(String[] customMaze) {
+        map = new PacmanMap();
+        map.loadFromStrings(customMaze);
+
+        coins.clear();
+        totalCoins = 0;
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                if (map.isWalkable(x, y) && !map.isSpawnPoint(x, y)) {
+                    coins.add(new Point(x * 40 + 20, y * 40 + 20));
+                    totalCoins++;
+                }
+            }
+        }
+
+        playerX = map.getSpawnX();
+        playerY = map.getSpawnY();
+
+        ghosts.clear();
+
+        addGhost(18, 13, Color.RED);
+        addGhost(18, 1, Color.PINK);
+        addGhost(1, 13, Color.CYAN);
+        addGhost(9, 9, Color.ORANGE);
+
+        score = 0;
+        gameOver = false;
+        win = false;
+    }
+
     private void loadDefaultMap() {
         String[] maze = {
                 "####################",
@@ -135,7 +165,6 @@ public class PacmanGame {
 
         notifyListeners();
     }
-
 
     private void checkCoinsCollection() {
         Iterator<Point> it = coins.iterator();
@@ -542,4 +571,52 @@ public class PacmanGame {
         }
     }
 
+    public static java.util.List<JsonMapData> loadAllMapsFromJson() {
+        java.util.List<JsonMapData> mapList = new ArrayList<>();
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader("maps.json"))) {
+            String line;
+            String currentName = "Без названия";
+            java.util.List<String> currentMazeRows = null;
+            boolean inMazeArray = false;
+
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.contains("\"name\":")) {
+                    currentName = line.split(":")[1].replace("\"", "").replace(",", "").trim();
+                    continue;
+                }
+                if (line.contains("\"maze\":")) {
+                    inMazeArray = true;
+                    currentMazeRows = new ArrayList<>();
+                    continue;
+                }
+                if (inMazeArray && line.contains("]")) {
+                    inMazeArray = false;
+                    if (currentMazeRows != null && !currentMazeRows.isEmpty()) {
+                        mapList.add(new JsonMapData(currentName, currentMazeRows.toArray(new String[0])));
+                    }
+                    continue;
+                }
+                if (inMazeArray && line.startsWith("\"")) {
+                    String mazeRow = line.replace("\"", "").replace(",", "");
+                    currentMazeRows.add(mazeRow);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Не удалось прочитать maps.json или файл отсутствует.");
+        }
+        return mapList;
+    }
+
+    public static class JsonMapData {
+        private final String name;
+        private final String[] maze;
+
+        public JsonMapData(String name, String[] maze) {
+            this.name = name;
+            this.maze = maze;
+        }
+        public String getName() { return name; }
+        public String[] getMaze() { return maze; }
+    }
 }

@@ -66,16 +66,34 @@ public class PacmanControlPanel extends JPanel {
                 return;
             }
 
-            PacmanGame newGame =
-                    new PacmanGame();
+            PacmanGame newGame = null;
 
-            if (choice == 1) {
+            if (choice == 0) {
+                java.util.List<PacmanGame.JsonMapData> availableMaps = PacmanGame.loadAllMapsFromJson();
+                if (availableMaps.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Файл maps.json не найден или пуст. Загружена стандартная карта.");
+                    newGame = new PacmanGame();
+                } else {
+                    String[] mapNames = new String[availableMaps.size()];
+                    for (int i = 0; i < availableMaps.size(); i++) {
+                        mapNames[i] = availableMaps.get(i).getName();
+                    }
+                    int mapChoice = JOptionPane.showOptionDialog(
+                            frame, "Выберите одну из карт из файла JSON:", "Выбор карты",
+                            JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+                            null, mapNames, mapNames[0]
+                    );
+                    if (mapChoice == -1) return;
+                    newGame = new PacmanGame(availableMaps.get(mapChoice).getMaze());
+                }
+            } else if (choice == 1) {
+                newGame = new PacmanGame();
                 newGame.generateRandomMap();
-            }
-
-            if (choice == 2) {
+            } else if (choice == 2) {
+                newGame = new PacmanGame();
                 newGame.startEditor();
             }
+
             currentDx = 0;
             currentDy = 0;
 

@@ -21,6 +21,7 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
 
     private List<int[]> routePoints = null;
     private Image winImage;
+    private Image gameOverImage;
 
     public GameVisualizer(RobotModel model)
     {
@@ -28,6 +29,7 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
         model.addListener(this);
         model.addRouteListener(this);
         loadWinImage();
+        loadGameOverImage();
 
         m_timer.schedule(new TimerTask()
         {
@@ -104,6 +106,20 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
         }
     }
 
+    private void loadGameOverImage() {
+        try {
+            java.io.File imgFile = new java.io.File("image/lost.jpg");
+            if (imgFile.exists()) {
+                gameOverImage = ImageIO.read(imgFile);
+            } else {
+                gameOverImage = null;
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+            gameOverImage = null;
+        }
+    }
+
     @Override
     public void onRobotMoved(double x, double y)
     {
@@ -142,6 +158,8 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
 
             if (pacmanGame.isWin()) {
                 drawWinScreenFull(g2d);
+            } else if (pacmanGame.isGameOver()) {
+                drawGameOverScreenFull(g2d);
             }
         } else {
             drawRoute(g2d);
@@ -151,7 +169,11 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
     }
 
     private void drawWinScreenFull(Graphics2D g) {
-            g.drawImage(winImage, 0, 0, getWidth(), getHeight(), this);
+        g.drawImage(winImage, 0, 0, getWidth(), getHeight(), this);
+    }
+
+    private void drawGameOverScreenFull(Graphics2D g) {
+        g.drawImage(gameOverImage, 0, 0, getWidth(), getHeight(), this);
     }
 
     private void drawRoute(Graphics2D g) {
