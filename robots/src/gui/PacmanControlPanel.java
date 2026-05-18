@@ -34,7 +34,54 @@ public class PacmanControlPanel extends JPanel {
         newGameButton.setForeground(Color.BLACK);
         newGameButton.setFocusable(false);
         newGameButton.addActionListener((ActionEvent e) -> {
-            resetAndRestart();
+
+            Window window =
+                    SwingUtilities.getWindowAncestor(this);
+
+            if (!(window instanceof MainApplicationFrame)) {
+                return;
+            }
+
+            MainApplicationFrame frame =
+                    (MainApplicationFrame) window;
+
+            String[] options = {
+                    "Готовая карта",
+                    "Случайная карта",
+                    "Редактор карты"
+            };
+
+            int choice = JOptionPane.showOptionDialog(
+                    frame,
+                    "Выберите режим карты",
+                    "PACMAN",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+            );
+
+            if (choice == -1) {
+                return;
+            }
+
+            PacmanGame newGame =
+                    new PacmanGame();
+
+            if (choice == 1) {
+                newGame.generateRandomMap();
+            }
+
+            if (choice == 2) {
+                newGame.startEditor();
+            }
+            currentDx = 0;
+            currentDy = 0;
+
+            keysPressed.clear();
+
+            frame.startPacmanGame(newGame);
         });
 
         scoreLabel.setForeground(Color.WHITE);
@@ -105,6 +152,27 @@ public class PacmanControlPanel extends JPanel {
         return new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+
+                    if (game.isEditMode()) {
+
+                        if (!game.getMap().isConnected()) {
+
+                            JOptionPane.showMessageDialog(
+                                    null,
+                                    "Карта содержит недостижимые области"
+                            );
+
+                            return;
+                        }
+
+                        game.stopEditor();
+
+                        game.start();
+                    }
+
+                    return;
+                }
                 int key = e.getKeyCode();
                 keysPressed.put(key, true);
                 updateDirection();

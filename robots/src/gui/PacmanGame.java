@@ -1,11 +1,8 @@
 package gui;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.LinkedList;
 
 public class PacmanGame {
     private boolean active = false;
@@ -19,6 +16,7 @@ public class PacmanGame {
     private List<Point> coins = new ArrayList<>();
     private int score = 0;
     private int totalCoins = 0;
+    private boolean editMode = false;
 
     private static final int PLAYER_SIZE = 24;
     private static final int COIN_SIZE = 8;
@@ -96,26 +94,48 @@ public class PacmanGame {
     }
 
     public void movePlayer(int dx, int dy) {
-        if (!active || gameOver || win) return;
+        if (!active || gameOver || win) {
+            return;
+        }
 
-        double newX = playerX + dx;
-        double newY = playerY + dy;
+        int cellX = (int)(playerX / CELL_SIZE);
+        int cellY = (int)(playerY / CELL_SIZE);
+        double centerX = cellX * CELL_SIZE + CELL_SIZE / 2;
+        double centerY = cellY * CELL_SIZE + CELL_SIZE / 2;
+        double newX = playerX;
+        double newY = playerY;
+
+        if (dx != 0) {
+            newY = centerY;
+            int nextCellX = cellX + Integer.signum(dx);
+            if (map.isWalkable(nextCellX, cellY) || Math.abs(playerX - centerX) > 2) {
+                newX += dx;
+            }
+        }
+
+        if (dy != 0) {
+            newX = centerX;
+            int nextCellY = cellY + Integer.signum(dy);
+            if (map.isWalkable(cellX, nextCellY) || Math.abs(playerY - centerY) > 2) {
+                newY += dy;
+            }
+        }
 
         if (!map.isCollision(newX, newY, PLAYER_SIZE)) {
             playerX = newX;
             playerY = newY;
-
-            checkCoinsCollection();
-
-            if (score == totalCoins) {
-                win = true;
-                active = false;
-                notifyListeners();
-            }
-
-            notifyListeners();
         }
+
+        checkCoinsCollection();
+
+        if (score == totalCoins) {
+            win = true;
+            active = false;
+        }
+
+        notifyListeners();
     }
+
 
     private void checkCoinsCollection() {
         Iterator<Point> it = coins.iterator();
@@ -426,6 +446,100 @@ public class PacmanGame {
         int y = cellY * CELL_SIZE + CELL_SIZE / 2;
 
         ghosts.add(new Ghost(x, y, color));
+    }
+
+    public PacmanMap getMap() {
+        return map;
+    }
+
+    public void startEditor() {
+
+        editMode = true;
+
+        active = true;
+
+        map.createEmptyMap(20, 15);
+
+        coins.clear();
+        ghosts.clear();
+
+        notifyListeners();
+    }
+
+    public boolean isEditMode() {
+        return editMode;
+    }
+
+    public void stopEditor() {
+
+        editMode = false;
+
+        coins.clear();
+
+        totalCoins = 0;
+
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+
+                if (map.isWalkable(x, y)
+                        &&
+                        !map.isSpawnPoint(x, y)) {
+
+                    coins.add(
+                            new Point(
+                                    x * CELL_SIZE + CELL_SIZE / 2,
+                                    y * CELL_SIZE + CELL_SIZE / 2
+                            )
+                    );
+
+                    totalCoins++;
+                }
+            }
+        }
+
+        playerX = map.getSpawnX();
+        playerY = map.getSpawnY();
+
+        ghosts.clear();
+
+        addRandomGhost(Color.RED);
+        addRandomGhost(Color.PINK);
+        addRandomGhost(Color.CYAN);
+        addRandomGhost(Color.ORANGE);
+
+        notifyListeners();
+    }
+
+    public void generateRandomMap() {
+
+        map.createEmptyMap(20, 15);
+
+        map.generateRandomMap();
+
+        stopEditor();
+    }
+
+    private void addRandomGhost(Color color) {
+
+        Random random = new Random();
+
+        while (true) {
+
+            int x =
+                    random.nextInt(map.getWidth());
+
+            int y =
+                    random.nextInt(map.getHeight());
+
+            if (map.isWalkable(x, y)
+                    &&
+                    !map.isSpawnPoint(x, y)) {
+
+                addGhost(x, y, color);
+
+                return;
+            }
+        }
     }
 
 }

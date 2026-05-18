@@ -7,9 +7,9 @@ import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.JPanel;
 import javax.imageio.ImageIO;
 import java.io.IOException;
+import javax.swing.*;
 
 public class GameVisualizer extends JPanel implements RobotListener, RouteListener
 {
@@ -47,6 +47,35 @@ public class GameVisualizer extends JPanel implements RobotListener, RouteListen
                 Insets insets = getInsets();
                 int x = e.getX() - insets.left;
                 int y = e.getY() - insets.top;
+
+                PacmanGame pacmanGame =
+                        model.getPacmanGame();
+
+                if (model.isPacmanMode()
+                        &&
+                        pacmanGame.isEditMode()) {
+
+                    int cellX = x / 40;
+                    int cellY = y / 40;
+
+                    if (SwingUtilities.isLeftMouseButton(e)) {
+
+                        pacmanGame
+                                .getMap()
+                                .toggleWall(cellX, cellY);
+                    }
+
+                    if (SwingUtilities.isRightMouseButton(e)) {
+
+                        pacmanGame
+                                .getMap()
+                                .removeWall(cellX, cellY);
+                    }
+
+                    repaint();
+
+                    return;
+                }
 
                 if (model.isRouteMode()) {
                     model.addRoutePoint(x, y);

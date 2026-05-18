@@ -18,7 +18,7 @@ import java.awt.event.KeyListener;
 
 /**
  * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается. 
+ * 1. Метод создания меню перегружен функционалом и трудно читается.
  * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
  *
  */
@@ -40,7 +40,7 @@ public class MainApplicationFrame extends JFrame
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
         //of the screen.
-        int inset = 50;        
+        int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
             screenSize.width  - inset*2,
@@ -86,21 +86,21 @@ public class MainApplicationFrame extends JFrame
         Logger.debug("Протокол работает");
         return logWindow;
     }
-    
+
     protected void addWindow(JInternalFrame frame)
     {
         desktopPane.add(frame);
         frame.setVisible(true);
     }
-    
+
 //    protected JMenuBar createMenuBar() {
 //        JMenuBar menuBar = new JMenuBar();
-// 
+//
 //        //Set up the lone menu.
 //        JMenu menu = new JMenu("Document");
 //        menu.setMnemonic(KeyEvent.VK_D);
 //        menuBar.add(menu);
-// 
+//
 //        //Set up the first menu item.
 //        JMenuItem menuItem = new JMenuItem("New");
 //        menuItem.setMnemonic(KeyEvent.VK_N);
@@ -109,7 +109,7 @@ public class MainApplicationFrame extends JFrame
 //        menuItem.setActionCommand("new");
 ////        menuItem.addActionListener(this);
 //        menu.add(menuItem);
-// 
+//
 //        //Set up the second menu item.
 //        menuItem = new JMenuItem("Quit");
 //        menuItem.setMnemonic(KeyEvent.VK_Q);
@@ -118,10 +118,10 @@ public class MainApplicationFrame extends JFrame
 //        menuItem.setActionCommand("quit");
 ////        menuItem.addActionListener(this);
 //        menu.add(menuItem);
-// 
+//
 //        return menuBar;
 //    }
-    
+
     private JMenuBar generateMenuBar()
     {
         JMenuBar menuBar = new JMenuBar();
@@ -157,33 +157,68 @@ public class MainApplicationFrame extends JFrame
         JMenu gameModeMenu = new JMenu("Режим игры");
         gameModeMenu.setMnemonic(KeyEvent.VK_G);
 
-        JMenuItem pacmanModeItem = new JMenuItem("Режим PACMAN", KeyEvent.VK_P);
+        JMenuItem pacmanModeItem =
+                new JMenuItem("Режим PACMAN", KeyEvent.VK_P);
+
         pacmanModeItem.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
+
+            String[] options = {
+                    "Готовая карта",
+                    "Случайная карта",
+                    "Редактор карты"
+            };
+
+            int choice = JOptionPane.showOptionDialog(
                     this,
-                    "Переключиться в режим PACMAN?",
-                    "Подтверждение",
-                    JOptionPane.YES_NO_OPTION
+                    "Выберите режим карты",
+                    "PACMAN",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
             );
-            if (confirm == JOptionPane.YES_OPTION) {
 
-                PacmanGame newGame = new PacmanGame();
-                robotModel.setPacmanGame(newGame);
-
-                robotModel.startPacmanMode();
-
-                coordWindow.setVisible(false);
-
-                pacmanControlPanel = new PacmanControlPanel(robotModel.getPacmanGame());
-
-                gameWindow.setPacmanMode(true, pacmanControlPanel);
-                gameWindow.setVisible(true);
-
-                gameWindow.addKeyListener(pacmanControlPanel.getKeyAdapter());
-                gameWindow.setFocusable(true);
-                gameWindow.requestFocus();
+            if (choice == -1) {
+                return;
             }
+
+            PacmanGame newGame =
+                    new PacmanGame();
+
+            if (choice == 1) {
+                newGame.generateRandomMap();
+            }
+
+            if (choice == 2) {
+                newGame.startEditor();
+            }
+
+            robotModel.setPacmanGame(newGame);
+
+            robotModel.startPacmanMode();
+
+            coordWindow.setVisible(false);
+
+            pacmanControlPanel =
+                    new PacmanControlPanel(newGame);
+
+            gameWindow.setPacmanMode(
+                    true,
+                    pacmanControlPanel
+            );
+
+            gameWindow.setVisible(true);
+
+            gameWindow.addKeyListener(
+                    pacmanControlPanel.getKeyAdapter()
+            );
+
+            gameWindow.setFocusable(true);
+
+            gameWindow.requestFocus();
         });
+
         gameModeMenu.add(pacmanModeItem);
 
         JMenuItem robotModeItem = new JMenuItem("Обычный режим робота", KeyEvent.VK_R);
@@ -366,5 +401,38 @@ public class MainApplicationFrame extends JFrame
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public void startPacmanGame(PacmanGame game) {
+
+        robotModel.setPacmanGame(game);
+
+        robotModel.startPacmanMode();
+
+        coordWindow.setVisible(false);
+
+        if (pacmanControlPanel != null) {
+
+            gameWindow.removeKeyListener(
+                    pacmanControlPanel.getKeyAdapter()
+            );
+        }
+
+        pacmanControlPanel =
+                new PacmanControlPanel(game);
+
+        gameWindow.setPacmanMode(
+                true,
+                pacmanControlPanel
+        );
+
+        gameWindow.setVisible(true);
+
+        gameWindow.addKeyListener(
+                pacmanControlPanel.getKeyAdapter()
+        );
+
+        gameWindow.setFocusable(true);
+
+        gameWindow.requestFocus();
     }
 }
